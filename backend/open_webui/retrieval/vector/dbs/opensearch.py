@@ -19,7 +19,8 @@ from open_webui.config import (
 
 class OpenSearchClient(VectorDBBase):
     def __init__(self):
-        self.index_prefix = "open_webui"
+        # Read prefix from environment, default to empty string
+        self.index_prefix = os.environ.get("OPENSEARCH_INDEX_PREFIX", "")
         self.client = OpenSearch(
             hosts=[OPENSEARCH_URI],
             use_ssl=OPENSEARCH_SSL,
@@ -28,7 +29,9 @@ class OpenSearchClient(VectorDBBase):
         )
 
     def _get_index_name(self, collection_name: str) -> str:
-        return f"{self.index_prefix}_{collection_name}"
+        if self.index_prefix:
+            return f"{self.index_prefix}{collection_name}"
+        return collection_name
 
     def _result_to_get_result(self, result) -> GetResult:
         if not result["hits"]["hits"]:
